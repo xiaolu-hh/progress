@@ -190,8 +190,7 @@
     <div class="wrap">
         <div class="role-box">
             <div class="avatar">
-                <!-- 请把下面的文件名，改成你自己上传的手绘小人图片的实际文件名 -->
-                <img src="mycole.png" alt="手绘小人">
+                < img src="mycole.png" alt="手绘小人">
             </div>
             <div class="talk" id="roleTalk">快来做题吧~</div>
         </div>
@@ -216,14 +215,14 @@
     </div>
 
     <script>
-        // 全局变量：题目数字、运算符、正确答案
         let num1, num2, op, realAns;
         let totalCount = 0;
         let rightCount = 0;
         let hasShowAward = false;
+        let voiceReady = false;
 
-        // 语音播报函数
         function voiceSpeak(text){
+            if(!voiceReady) return;
             let utter = new SpeechSynthesisUtterance(text);
             utter.lang = "zh-CN";
             utter.rate = 1;
@@ -231,12 +230,10 @@
             window.speechSynthesis.speak(utter);
         }
 
-        // 改变小人对话框文字
         function changeTalk(word){
             document.getElementById("roleTalk").innerText = word;
         }
 
-        // 答对10题弹出大拇指奖励
         function showThumbAward(){
             if(hasShowAward) return;
             hasShowAward = true;
@@ -248,13 +245,18 @@
             },3000);
         }
 
-        // 页面加载时，初始化第一道题
+        // 手机点击页面解锁语音
+        document.body.addEventListener('click',function(){
+            if(!voiceReady){
+                voiceReady = true;
+                voiceSpeak("欢迎来到十以内加减法小游戏，快来答题吧");
+            }
+        });
+
         window.onload = function(){
             getNewQus();
-            voiceSpeak("欢迎来到十以内加减法小游戏，快来答题吧");
         }
 
-        // 生成新题目（已修复undefined问题）
         function getNewQus(){
             let isAdd = Math.random() > 0.5;
             num1 = Math.floor(Math.random() * 9) + 1;
@@ -263,7 +265,6 @@
             if(isAdd){
                 op = "+";
                 realAns = num1 + num2;
-                // 保证加法和不超过10
                 while(realAns > 10){
                     num1 = Math.floor(Math.random() * 9) + 1;
                     num2 = Math.floor(Math.random() * 9) + 1;
@@ -271,14 +272,12 @@
                 }
             }else{
                 op = "-";
-                // 减法保证大数减小数，结果不为负
                 if(num1 < num2){
                     [num1, num2] = [num2, num1];
                 }
                 realAns = num1 - num2;
             }
 
-            // 更新题目显示，添加动画
             let speakStr = num1 + op + num2 + "等于几";
             let htmlStr = `<span class="num-animate">${num1}</span> 
                            <span class="op-animate">${op}</span> 
@@ -290,7 +289,6 @@
             voiceSpeak(speakStr);
         }
 
-        // 检查答案（已修复undefined问题）
         function checkAnswer(){
             let userInput = parseInt(document.getElementById("userAns").value);
             if(isNaN(userInput)){
@@ -300,12 +298,10 @@
                 return;
             }
 
-            // 更新答题总数
             totalCount++;
             document.getElementById("total").innerText = totalCount;
 
             if(userInput === realAns){
-                // 答对
                 rightCount++;
                 document.getElementById("rightNum").innerText = rightCount;
                 document.getElementById("showTip").className = "tip right";
@@ -313,14 +309,11 @@
                 changeTalk("真厉害，继续加油");
                 voiceSpeak("回答正确，你真棒");
 
-                // 答对10题弹出奖励
                 if(rightCount === 10){
                     setTimeout(showThumbAward, 800);
                 }
-                // 答对1秒后自动跳题
                 setTimeout(getNewQus,1000);
             }else{
-                // 答错
                 document.getElementById("showTip").className = "tip wrong";
                 document.getElementById("showTip").innerText = `😜再想想，正确答案是${realAns}`;
                 changeTalk("没关系，下次细心点");
