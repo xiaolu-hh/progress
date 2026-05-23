@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>十以内加减法闯关</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "幼圆",sans-serif;
+        }
+        body{
+            background: linear-gradient(135deg,#ffe0f0,#e0f7ff);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .wrap{
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        .role-box{
+            width: 120px;
+            height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .avatar{
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #ffb3d1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px #ff99bb;
+            transition: transform 0.3s;
+            overflow: hidden;
+        }
+        .avatar img{
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .avatar:hover{
+            transform: rotate(10deg);
+        }
+        .talk{
+            margin-top: 15px;
+            padding: 8px 12px;
+            background: #fff;
+            border-radius: 15px;
+            font-size: 14px;
+            color: #555;
+            text-align: center;
+            min-height: 40px;
+            line-height: 1.4;
+        }
+        .game-card{
+            background: #fff;
+            border-radius: 25px;
+            padding: 40px 30px;
+            box-shadow: 0 8px 25px rgba(255,150,200,0.3);
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+        }
+        .title{
+            font-size: 28px;
+            color: #ff6699;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        .score-box{
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            font-size: 18px;
+            color: #555;
+        }
+        .question-box{
+            font-size: 45px;
+            color: #333;
+            margin: 35px 0;
+            padding: 20px;
+            background: #fff5fb;
+            border-radius: 15px;
+            letter-spacing: 8px;
+        }
+        .num-animate{
+            display: inline-block;
+            animation: bounce 0.8s ease infinite alternate;
+        }
+        @keyframes bounce{
+            from{transform: translateY(0);}
+            to{transform: translateY(-8px);}
+        }
+        .op-animate{
+            display: inline-block;
+            animation: swing 1s ease infinite alternate;
+        }
+        @keyframes swing{
+            from{transform: rotate(-5deg);}
+            to{transform: rotate(5deg);}
+        }
+        #userAns{
+            width: 140px;
+            height: 55px;
+            font-size: 28px;
+            text-align: center;
+            border: 3px solid #ff99bb;
+            border-radius: 12px;
+            outline: none;
+        }
+        .btn-group{
+            margin: 25px 0;
+        }
+        button{
+            padding: 12px 28px;
+            font-size: 18px;
+            border: none;
+            border-radius: 30px;
+            margin: 0 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .submit-btn{
+            background: #ff6699;
+            color: white;
+        }
+        .next-btn{
+            background: #66b3ff;
+            color: white;
+        }
+        button:active{
+            transform: scale(0.95);
+        }
+        .tip{
+            font-size: 22px;
+            height: 35px;
+            line-height: 35px;
+            margin: 15px 0;
+        }
+        .right{color: #27ae60;}
+        .wrong{color: #e74c3c;}
+
+        .thumb-modal{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .thumb-icon{
+            font-size: 120px;
+            animation: thumbUp 0.6s ease infinite alternate;
+        }
+        @keyframes thumbUp{
+            0%{ transform: scale(0.8) rotate(-10deg); }
+            100%{ transform: scale(1.2) rotate(10deg); }
+        }
+        .win-text{
+            color: #fff;
+            font-size: 32px;
+            margin-top: 20px;
+            text-shadow: 0 0 10px #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="thumb-modal" id="thumbModal">
+        <div>
+            <div class="thumb-icon">👍</div>
+            <div class="win-text">答对10题，太棒啦！</div>
+        </div>
+    </div>
+
+    <div class="wrap">
+        <div class="role-box">
+            <div class="avatar">
+                <!-- 请把下面的文件名，改成你自己上传的手绘小人图片的实际文件名 -->
+                <img src="mycole.png" alt="手绘小人">
+            </div>
+            <div class="talk" id="roleTalk">快来做题吧~</div>
+        </div>
+
+        <div class="game-card">
+            <h2 class="title">🧮 十以内加减法闯关</h2>
+            <div class="score-box">
+                <div>答题总数：<span id="total">0</span></div>
+                <div>答对数量：<span id="rightNum">0</span></div>
+            </div>
+
+            <div class="question-box" id="qusText"></div>
+
+            <input type="number" id="userAns" placeholder="填写答案">
+            <div class="tip" id="showTip"></div>
+
+            <div class="btn-group">
+                <button class="submit-btn" onclick="checkAnswer()">确认作答</button>
+                <button class="next-btn" onclick="getNewQus()">下一题✨</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量：题目数字、运算符、正确答案
+        let num1, num2, op, realAns;
+        let totalCount = 0;
+        let rightCount = 0;
+        let hasShowAward = false;
+
+        // 语音播报函数
+        function voiceSpeak(text){
+            let utter = new SpeechSynthesisUtterance(text);
+            utter.lang = "zh-CN";
+            utter.rate = 1;
+            utter.pitch = 1.1;
+            window.speechSynthesis.speak(utter);
+        }
+
+        // 改变小人对话框文字
+        function changeTalk(word){
+            document.getElementById("roleTalk").innerText = word;
+        }
+
+        // 答对10题弹出大拇指奖励
+        function showThumbAward(){
+            if(hasShowAward) return;
+            hasShowAward = true;
+            let modal = document.getElementById("thumbModal");
+            modal.style.display = "flex";
+            voiceSpeak("恭喜你答对十道题目，表现非常优秀！");
+            setTimeout(()=>{
+                modal.style.display = "none";
+            },3000);
+        }
+
+        // 页面加载时，初始化第一道题
+        window.onload = function(){
+            getNewQus();
+            voiceSpeak("欢迎来到十以内加减法小游戏，快来答题吧");
+        }
+
+        // 生成新题目（已修复undefined问题）
+        function getNewQus(){
+            let isAdd = Math.random() > 0.5;
+            num1 = Math.floor(Math.random() * 9) + 1;
+            num2 = Math.floor(Math.random() * 9) + 1;
+
+            if(isAdd){
+                op = "+";
+                realAns = num1 + num2;
+                // 保证加法和不超过10
+                while(realAns > 10){
+                    num1 = Math.floor(Math.random() * 9) + 1;
+                    num2 = Math.floor(Math.random() * 9) + 1;
+                    realAns = num1 + num2;
+                }
+            }else{
+                op = "-";
+                // 减法保证大数减小数，结果不为负
+                if(num1 < num2){
+                    [num1, num2] = [num2, num1];
+                }
+                realAns = num1 - num2;
+            }
+
+            // 更新题目显示，添加动画
+            let speakStr = num1 + op + num2 + "等于几";
+            let htmlStr = `<span class="num-animate">${num1}</span> 
+                           <span class="op-animate">${op}</span> 
+                           <span class="num-animate">${num2}</span> =`;
+            document.getElementById("qusText").innerHTML = htmlStr;
+            document.getElementById("userAns").value = "";
+            document.getElementById("showTip").innerText = "";
+            changeTalk("开动脑筋算一算");
+            voiceSpeak(speakStr);
+        }
+
+        // 检查答案（已修复undefined问题）
+        function checkAnswer(){
+            let userInput = parseInt(document.getElementById("userAns").value);
+            if(isNaN(userInput)){
+                document.getElementById("showTip").innerText = "😯 请输入数字答案哦";
+                voiceSpeak("请输入正确的数字答案");
+                changeTalk("认真填写答案呀");
+                return;
+            }
+
+            // 更新答题总数
+            totalCount++;
+            document.getElementById("total").innerText = totalCount;
+
+            if(userInput === realAns){
+                // 答对
+                rightCount++;
+                document.getElementById("rightNum").innerText = rightCount;
+                document.getElementById("showTip").className = "tip right";
+                document.getElementById("showTip").innerText = "🎉太棒啦，回答正确！";
+                changeTalk("真厉害，继续加油");
+                voiceSpeak("回答正确，你真棒");
+
+                // 答对10题弹出奖励
+                if(rightCount === 10){
+                    setTimeout(showThumbAward, 800);
+                }
+                // 答对1秒后自动跳题
+                setTimeout(getNewQus,1000);
+            }else{
+                // 答错
+                document.getElementById("showTip").className = "tip wrong";
+                document.getElementById("showTip").innerText = `😜再想想，正确答案是${realAns}`;
+                changeTalk("没关系，下次细心点");
+                voiceSpeak("回答错误，正确答案是" + realAns);
+            }
+        }
+    </script>
+</body>
+</html>
